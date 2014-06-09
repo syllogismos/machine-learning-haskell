@@ -48,10 +48,11 @@ thetaAfterNIters (t0, t1, x, y, alpha, n)
   where
     [newt0, newt1] = newTheta x y [t0, t1] alpha
 
+
+
+-- test data, ex1data1.txt
+
 {-
-
-
- -- test data, ex1data1.txt
 
 6.1101,17.592
 5.5277,9.1302
