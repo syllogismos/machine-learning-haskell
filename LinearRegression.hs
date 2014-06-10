@@ -3,13 +3,11 @@ module Main where
 import           System.IO()
 import           Data.List()
 
-import           Numeric.AD
-import           Numeric.AD.Types
 
 
 main ::  IO ()
 main = do
-  a <- readFile "ex1data1.txt"
+  a <- readFile "exampledata.txt"
   let
     d = lines a
     temp = map ((read :: String -> [Double]) . (\tmp -> "[" ++ tmp ++ "]")) d
@@ -25,7 +23,7 @@ main = do
 -- x :: [[Double]]
 -- y :: [Double]
 -- theta :: [a]
-errorTotal :: (Floating (t a), Num a, Mode t) => [[a]] -> [a] -> [t a] -> t a
+-- errorTotal :: (Floating (t a), Num a, Mode t) => [[a]] -> [a] -> [t a] -> t a
 errorTotal x y theta = sum $ map sqhalf $ zipWith (-) (map (`costSingle` theta) x) (map auto y)
   where
     sqhalf t = (t**2)/2
@@ -53,6 +51,15 @@ thetaAfterNIters (t0, t1, x, y, alpha, n)
 -- test data, ex1data1.txt
 
 {-
+ -
+Hackage:  converge 0.1.0.1
+Hackage:  continued-fractions 0.9.1.1
+Hackage:  gamma 0.9.0.2
+Hackage:  flexible-defaults 0.0.1.1
+Hackage:  stateref 0.3
+Hackage:  th-extras 0.0.0.2
+Hackage:  random-source 0.3.0.6
+Hackage:  random-fu 0.2.4.0
 
 6.1101,17.592
 5.5277,9.1302
