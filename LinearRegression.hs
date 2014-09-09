@@ -2,6 +2,7 @@ module Main where
 
 import           System.IO()
 import           Data.List()
+import           Numeric.AD
 
 
 
@@ -14,9 +15,9 @@ main = do
     x = map init temp
     y = map last temp
     -- thetaAfterNIters (initial thetas, x, y, alpha, number of iterations)
-    thetaComputed = thetaAfterNIters (0, 0, x, y, 0.00001, 10)
+    -- thetaComputed = thetaAfterNIters (0, 0, x, y, 0.00001, 10)
     -- below theta is computed using gradient descent from AD library..
-    -- thetaComputed = last $ take 10 $ gradientDescent (\[tt0, tt1] -> errorTotal x y [tt0, tt1]) [0, 0]
+    thetaComputed = last $ take 100 $ gradientDescent (\[tt0, tt1] -> errorTotal x y [tt0, tt1]) [0, 0]
   print thetaComputed
 
 
