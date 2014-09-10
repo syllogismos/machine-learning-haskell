@@ -1,8 +1,11 @@
+{-# LANGUAGE Rank2Types #-}
+
 module Main where
 
 import           System.IO()
 import           Data.List()
 import           Numeric.AD
+import Numeric.AD.Internal.Reverse
 
 
 
@@ -11,7 +14,7 @@ main = do
   a <- readFile "exampledata.txt"
   let
     d = lines a
-    temp = map ((read :: String -> [Double]) . (\tmp -> "[" ++ tmp ++ "]")) d
+    temp = map ((read :: String -> [Float]) . (\tmp -> "[" ++ tmp ++ "]")) d
     x = map init temp
     y = map last temp
     -- thetaAfterNIters (initial thetas, x, y, alpha, number of iterations)
@@ -25,6 +28,7 @@ main = do
 -- y :: [Double]
 -- theta :: [a]
 -- errorTotal :: (Floating (t a), Num a, Mode t) => [[a]] -> [a] -> [t a] -> t a
+errorTotal :: forall a. (Floating a, Mode a) => [[Scalar a]] -> [Scalar a] -> [a] -> a
 errorTotal x y theta = sum $ map sqhalf $ zipWith (-) (map (`costSingle` theta) x) (map auto y)
   where
     sqhalf t = (t**2)/2
@@ -34,6 +38,19 @@ errorTotal x y theta = sum $ map sqhalf $ zipWith (-) (map (`costSingle` theta) 
         autox' = map auto x'
         coeff = tail theta'
 
+-- errorSingle :: Floating a => [a] -> [a] -> a
+errorSingle theta d0 = sqhalf $ (costSingle (tail d0) theta) - (head d0)
+  where
+    sqhalf t = (t**2)/2
+    costSingle x' theta' = constant + sum (zipWith (*) coeff autox')
+      where
+        constant = head theta'
+        autox' = map auto x'
+        coeff = tail theta'
+
+gradientDescentSeperated errorSingle d = gradientDescent (\theta -> (errorT theta d))
+  where
+    errorT theta d = map (errorSingle theta) d
 
 newTheta :: (Floating t) => [[t]] -> [t] -> [t] -> t -> [t]
 newTheta x y [t0, t1] alpha = zipWith (-) [t0, t1] mults
