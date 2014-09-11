@@ -1,4 +1,9 @@
+{-# OPTIONS_GHC -w #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main where
 
@@ -6,7 +11,8 @@ import           System.IO()
 import           Data.List()
 import           Numeric.AD
 import Numeric.AD.Internal.Reverse
-
+import Data.Traversable
+import Data.Reflection (Reifies)
 
 
 main ::  IO ()
@@ -32,25 +38,31 @@ errorTotal :: forall a. (Floating a, Mode a) => [[Scalar a]] -> [Scalar a] -> [a
 errorTotal x y theta = sum $ map sqhalf $ zipWith (-) (map (`costSingle` theta) x) (map auto y)
   where
     sqhalf t = (t**2)/2
-    costSingle x' theta' = constant + sum (zipWith (*) coeff autox')
-      where
-        constant = head theta'
-        autox' = map auto x'
-        coeff = tail theta'
 
--- errorSingle :: Floating a => [a] -> [a] -> a
-errorSingle theta d0 = sqhalf $ (costSingle (tail d0) theta) - (head d0)
+errorSingle :: 
+  forall a. (Floating a, Mode a) 
+  => [a] 
+  -> [Scalar a] 
+  -> a
+errorSingle theta d0 = sqhalf $ costSingle (tail d0) theta - auto ( head d0)
   where
     sqhalf t = (t**2)/2
-    costSingle x' theta' = constant + sum (zipWith (*) coeff autox')
+    
+costSingle x' theta' = constant + sum (zipWith (*) coeff autox')
       where
         constant = head theta'
         autox' = map auto x'
         coeff = tail theta'
 
-gradientDescentSeperated errorSingle d = gradientDescent (\theta -> (errorT theta d))
+gradientDescentSeperated :: 
+  (Traversable f, Fractional a, Ord a) 
+  => (forall s. Reifies s Tape => f (Reverse s a) -> f (Scalar a )-> Reverse s a)
+  -> [f(Scalar a)] 
+  -> f a 
+  -> [f a]
+gradientDescentSeperated errorSingle d = gradientDescent (`errorT` d)
   where
-    errorT theta d = map (errorSingle theta) d
+    errorT theta d = sum $ map (errorSingle theta) d
 
 newTheta :: (Floating t) => [[t]] -> [t] -> [t] -> t -> [t]
 newTheta x y [t0, t1] alpha = zipWith (-) [t0, t1] mults
