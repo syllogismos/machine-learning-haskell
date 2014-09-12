@@ -4,6 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -41,10 +42,10 @@ errorTotal x y theta = sum $ map sqhalf $ zipWith (-) (map (`costSingle` theta) 
 
 errorSingle :: 
   forall a. (Floating a, Mode a) 
-  => [a] 
-  -> [Scalar a] 
+  => [Scalar a] 
+  -> [a] 
   -> a
-errorSingle theta d0 = sqhalf $ costSingle (tail d0) theta - auto ( head d0)
+errorSingle d0 theta = sqhalf $ costSingle (tail d0) theta - auto ( head d0)
   where
     sqhalf t = (t**2)/2
     
@@ -56,13 +57,15 @@ costSingle x' theta' = constant + sum (zipWith (*) coeff autox')
 
 gradientDescentSeperated :: 
   (Traversable f, Fractional a, Ord a) 
-  => (forall s. Reifies s Tape => f (Reverse s a) -> f (Scalar a )-> Reverse s a)
+  => (forall s. Reifies s Tape => f (Scalar a) -> f (Reverse s a) -> Reverse s a)
   -> [f(Scalar a)] 
   -> f a 
   -> [f a]
 gradientDescentSeperated errorSingle d = gradientDescent (`errorT` d)
   where
-    errorT theta d = sum $ map (errorSingle theta) d
+    errorT theta d = sum $ map (`errorSingle` theta) d
+
+repeatList = concat . repeat
 
 newTheta :: (Floating t) => [[t]] -> [t] -> [t] -> t -> [t]
 newTheta x y [t0, t1] alpha = zipWith (-) [t0, t1] mults
