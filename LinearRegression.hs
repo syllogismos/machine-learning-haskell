@@ -79,18 +79,18 @@ thetaAfterNIters (t0, t1, x, y, alpha, n)
   where
     [newt0, newt1] = newTheta x y [t0, t1] alpha
 
-stochasticGradientDescent :: (Traversable f, Fractional a, Ord a) 
+stochasticGradient :: (Traversable f, Fractional a, Ord a) 
   => (forall s. Reifies s Tape => f (Scalar a) -> f (Reverse s a) -> Reverse s a) 
   -> [f (Scalar a)]
   -> f a 
   -> [f a]
-stochasticGradientDescent errorSingle d0 x0 = go xgx0 0.1 dLeft
+stochasticGradient errorSingle d0 x0 = go xgx0 0.1 dLeft
   where
     dLeft = tail $ cycle d0
     (fx0, xgx0) = gradWith' (,) (errorSingle (head d0)) x0
     go xgx eta d
       | eta ==0       = []
-      | otherwise     = go xgx1 eta (tail d)
+      | otherwise     = x1 : go xgx1 eta (tail d)
       where
         x1 = fmap (\(xi, gxi) -> xi - eta * gxi) xgx
         (_, xgx1) = gradWith' (,) (errorSingle (head d)) x1
