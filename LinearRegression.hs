@@ -22,8 +22,8 @@ main = do
   let
     d = lines a
     temp = map ((read :: String -> [Float]) . (\tmp -> "[" ++ tmp ++ "]")) d
-    x = map init temp
-    y = map last temp
+    y = map head temp
+    x = map tail temp
     -- thetaAfterNIters (initial thetas, x, y, alpha, number of iterations)
     -- thetaComputed = thetaAfterNIters (0, 0, x, y, 0.00001, 10)
     -- below theta is computed using gradient descent from AD library..
