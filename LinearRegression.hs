@@ -27,7 +27,7 @@ main = do
     -- thetaAfterNIters (initial thetas, x, y, alpha, number of iterations)
     -- thetaComputed = thetaAfterNIters (0, 0, x, y, 0.00001, 10)
     -- below theta is computed using gradient descent from AD library..
-    thetaComputed = last $ take 100 $ gradientDescent (\[tt0, tt1] -> errorTotal x y [tt0, tt1]) [0, 0]
+    thetaComputed = last $ take 1000 $ gradientDescent (\[tt0, tt1] -> errorTotal x y [tt0, tt1]) [0, 0]
   print thetaComputed
 
 
@@ -84,7 +84,7 @@ stochasticGradient :: (Traversable f, Fractional a, Ord a)
   -> [f (Scalar a)]
   -> f a 
   -> [f a]
-stochasticGradient errorSingle d0 x0 = go xgx0 0.1 dLeft
+stochasticGradient errorSingle d0 x0 = go xgx0 0.0001 dLeft
   where
     dLeft = tail $ cycle d0
     (fx0, xgx0) = gradWith' (,) (errorSingle (head d0)) x0
