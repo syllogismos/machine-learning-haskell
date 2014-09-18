@@ -5,6 +5,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
 
 module Main where
 
@@ -78,21 +79,22 @@ thetaAfterNIters (t0, t1, x, y, alpha, n)
   where
     [newt0, newt1] = newTheta x y [t0, t1] alpha
 
-stochasticGradient :: (Traversable f, Fractional a, Ord a) 
+stochasticGradient :: (Floating a,Traversable f, Fractional a, Ord a) 
   => (forall s. Reifies s Tape => f (Scalar a) -> f (Reverse s a) -> Reverse s a) 
   -> [f (Scalar a)]
   -> f a 
   -> [f a]
-stochasticGradient errorSingle d0 x0 = go xgx0 0.001 dLeft
+stochasticGradient errorSingle d0 x0 = go xgx0 0.01 dLeft 1
   where
     dLeft = tail $ cycle d0
     (fx0, xgx0) = gradWith' (,) (errorSingle (head d0)) x0
-    go xgx eta d
-      | eta ==0       = []
-      | otherwise     = x1 : go xgx1 eta (tail d)
+    go xgx !eta0 d !i
+      | eta0 == 0       = []
+      | otherwise     = x1 : go xgx1 eta0 (tail d) (i+1)
       where
-        x1 = fmap (\(xi, gxi) -> xi - eta * gxi) xgx
+        x1 = fmap (\(xi, gxi) -> xi - etai * gxi) xgx
         (_, xgx1) = gradWith' (,) (errorSingle (head d)) x1
+        etai = eta0 / i ** 0.25
 
 -- test data, ex1data1.txt
 
